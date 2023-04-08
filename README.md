@@ -3,7 +3,7 @@
 ## Overview
 We propose a novel deep generative model, called BSDE-Gen, which combines the flexibility of backward stochastic differential equations (BSDEs) with the power of deep neural networks for generating high-dimensional complex target data, particularly in the field of image generation.
 
-The paper can be find on arXiv: 
+The paper can be found on arXiv: 
 
 Xu, Xingcheng. "Deep Generative Modeling with Backward Stochastic Differential Equations." arXiv preprint arXiv:2304.xxxxx (2023).
 
