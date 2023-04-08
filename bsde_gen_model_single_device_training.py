@@ -26,7 +26,7 @@ def setup_seed(seed):
 
 
 # 设置随机数种子
-# setup_seed(0)
+setup_seed(0)
 
 
 class FBSDEGen(nn.Module):
@@ -88,9 +88,9 @@ class FBSDEGen(nn.Module):
         return x, y
 
 
+# *************************************************** #
 """
-## Model Training
-### DDP: DistributedDataParallel
+## Model Training on Single Device (GPU/CPU)
 """
 
 import torch
@@ -147,6 +147,7 @@ def MMD(x, y, kernel="multiscale"):
         x: first sample, distribution P
         y: second sample, distribution Q
         kernel: kernel type such as "multiscale" or "rbf"
+    Ref. https://www.onurtunali.com/ml/2019/03/08/maximum-mean-discrepancy-in-machine-learning.html
     """
     xx, yy, zz = torch.mm(x, x.t()), torch.mm(y, y.t()), torch.mm(x, y.t())
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
@@ -239,7 +240,7 @@ def f(t, x, y, z):
 #     import torch
 #     A = torch.load('tensor_A.pt').to(device)
 #     batch_size = x.size()[0]
-#     B = torch.abs(y).reshape(batch_size, dim_y, 1).to(device)
+#     B = (-y).reshape(batch_size, dim_y, 1).to(device)
 #     return torch.matmul(0.01*A, B).reshape(batch_size, dim_y).to(device)
 
 
