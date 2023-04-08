@@ -88,7 +88,6 @@ class FBSDEGen(nn.Module):
         return x, y
 
 
-# *************************************************** #
 """
 ## Model Training
 ### DDP: DistributedDataParallel
@@ -100,12 +99,10 @@ import torch.nn.functional as F
 import numpy as np
 from torch.autograd import Variable
 from torchvision import datasets, transforms
-import torch.distributed as dist
-from torch.nn.parallel import DistributedDataParallel as DDP
 import os
 
 
-def train(model, train_loader, optimizer, n_epochs, device, world_size, dim_in, store_path):
+def train(model, train_loader, optimizer, n_epochs, device, dim_in, store_path):
     model.train()
     # criterion = torch.nn.MSELoss().to(device)  # MSELoss, SmoothL1Loss; KLDivLoss, MMD
     best_loss = float("inf")
@@ -128,28 +125,19 @@ def train(model, train_loader, optimizer, n_epochs, device, world_size, dim_in, 
             loss.backward()
             optimizer.step()
 
-            # if dist.get_rank() == 0:
-            #     print(f"epoch={epoch + 1}, batch_idx={batch_idx + 1}, loss={loss:.8f}")
+            # print(f"epoch={epoch + 1}, batch_idx={batch_idx + 1}, loss={loss:.8f}")
 
             epoch_loss += loss.item()
 
         epoch_loss /= (batch_idx + 1)
 
-        # use torch.distributed.all_reduce to average the loss across all GPUs
-        loss_tensor = torch.tensor(epoch_loss).to(device)
-        torch.distributed.all_reduce(loss_tensor)
-        epoch_loss = loss_tensor.item() / world_size
-
         log_string = f"Loss at epoch {epoch+1}: {epoch_loss:.8f}"
 
         # Storing the model
-        if dist.get_rank() == 0 and best_loss > epoch_loss:
-            best_loss = epoch_loss
-            torch.save(model.module.state_dict(), store_path)
-            log_string += " --> Best model ever (stored)"
-
-        if dist.get_rank() == 0:
-            print(log_string)
+        best_loss = epoch_loss
+        torch.save(model.state_dict(), store_path)
+        log_string += " --> Best model ever (stored)"
+        print(log_string)
 
 
 def MMD(x, y, kernel="multiscale"):
@@ -191,23 +179,9 @@ def MMD(x, y, kernel="multiscale"):
     return torch.mean(XX + YY - 2. * XY)
 
 
-# 打印gpu数量
-print("Using", torch.cuda.device_count(), "GPUs")
-
-# initialize process group
-dist.init_process_group(backend="nccl", init_method='env://')
-
-# set rank and size
-rank = int(os.environ['LOCAL_RANK'])
-world_size = dist.get_world_size()
-print(f"rank={rank}, world_size={world_size}")
-
-# 根据rank指定使用哪块gpu
-torch.cuda.set_device(rank)
-
-# 定义设备，根据gpu的数量来设定，初始gpu为0，这里gpu数量为8
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1,2,3,4,5,6,7"
-device = torch.device("cuda", rank)
+cuda_id = 0
+device = torch.device(f"cuda:{cuda_id}" if torch.cuda.is_available() else "cpu")
+print(f"device={device}")
 
 # 把模型加载到cuda上
 # hyperparameters
@@ -220,9 +194,8 @@ batch_size = 512
 lr = 0.0001
 
 root = "./data"
-store_path="bsde_mlp_ddp.pt"
-last_store_path="bsde_mlp_ddp_last.pt"
-
+store_path=f"bsde_mlp_single_{cuda_id}.pt"
+last_store_path=f"bsde_mlp_single_{cuda_id}_last.pt"
 
 # X: Ornstein–Uhlenbeck (OU) process
 def b(t, x):
@@ -266,16 +239,15 @@ def f(t, x, y, z):
 #     import torch
 #     A = torch.load('tensor_A.pt').to(device)
 #     batch_size = x.size()[0]
-#     B = (-y).reshape(batch_size, dim_y, 1).to(device)
+#     B = torch.abs(y).reshape(batch_size, dim_y, 1).to(device)
 #     return torch.matmul(0.01*A, B).reshape(batch_size, dim_y).to(device)
 
 
 model = FBSDEGen(b, sigma, f, dim_x, dim_w, dim_y, dim_h1, dim_h2, dim_h3, T, N, device=device)
 model = model.to(device)
 
-if dist.get_rank() == 0:
-    n_params = sum([p.numel() for p in model.parameters()])
-    print(f"number of parameters: {n_params}")
+n_params = sum([p.numel() for p in model.parameters()])
+print(f"number of parameters: {n_params}")
 
 try:
     model.load_state_dict(torch.load(store_path))
@@ -283,33 +255,24 @@ try:
 except:
     pass
 
-# 初始化DDP模型
-model = DDP(model, device_ids=[rank], output_device=rank)
-
 # 数据分到各gpu上, dataloader
 trans = transforms.Compose([transforms.ToTensor(),
                transforms.Lambda(lambda x: (x-0.5)*2) # Scale between [-1, 1]
                ])
 train_set = datasets.FashionMNIST(root=root, train=True, transform=trans, download=True)
-train_sampler = torch.utils.data.distributed.DistributedSampler(train_set, num_replicas=world_size, rank=rank)
 train_loader = torch.utils.data.DataLoader(
     dataset=train_set,
     batch_size=batch_size,
-    num_workers=world_size,
-    pin_memory=True,
-    sampler=train_sampler,
-    shuffle=False)
+    shuffle=True)
 
 optimizer = torch.optim.RMSprop(model.parameters(), lr=lr)
 # optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 
-train(model, train_loader, optimizer, n_epochs, device, world_size, dim_x, store_path)
+train(model, train_loader, optimizer, n_epochs, device, dim_x, store_path)
 
-if dist.get_rank() == 0:
-    torch.save(model.module.state_dict(), last_store_path)
-    print("Training Completed!")
+torch.save(model.state_dict(), last_store_path)
+print("Training Completed!")
 
-dist.destroy_process_group()
 
 """**END**"""

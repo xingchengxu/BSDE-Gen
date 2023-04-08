@@ -100,6 +100,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"device={device}")
 
@@ -108,9 +109,9 @@ T, N = 1.0, 200
 dim_x, dim_y, dim_w = 32, 784, 32
 dim_h1, dim_h2, dim_h3 = 64, 32, 64 # 1000, 600, 1000
 
-model_store_path="fbsde_mlp_ddp_0322.pt"
-image_store_path = "fbsde_mlp_ddp_0322.png"
-image_store_path_r = "fbsde_mlp_ddp_0322_r.png"
+model_store_path="bsde_mlp_ddp.pt"  # "bsde_mlp_single_0.pt"
+image_store_path = "bsde_mlp_gen.png"
+image_store_path_r = "bsde_mlp_gen_r.png"
 
 
 # X: Ornstein–Uhlenbeck (OU) process
