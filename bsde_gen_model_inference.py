@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Author: Xingcheng Xu
 """
-# FBSGE-Gen Model
+# BSE-Gen Model
 """
 
 """
