@@ -55,7 +55,7 @@ Please cite the paper/repo if you use the idea or code in this paper/repo.
   howpublished = {\url{https://arxiv.org/abs/2304.xxxxx}},
 }
 ```
-
+<!--
 ```
 @misc{BSDE-Gen,
   author = {Xingcheng Xu},
@@ -66,4 +66,4 @@ Please cite the paper/repo if you use the idea or code in this paper/repo.
   howpublished = {\url{https://github.com/xingchengxu/BSDE-Gen}},
 }
 ```
-
+-->
