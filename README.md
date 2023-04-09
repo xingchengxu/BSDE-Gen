@@ -43,7 +43,7 @@ python bsde_gen_model_inference.py
 
 ## Citation
 
-Please cite the paper/repo if you use the idea or code in this paper/repo.
+Please cite the paper if you use the idea or code in this paper/repo.
 
 ```
 @misc{BSDE-Gen,
