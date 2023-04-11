@@ -5,7 +5,9 @@ We propose a novel deep generative model, called BSDE-Gen, which combines the fl
 
 The paper can be found on arXiv: 
 
-Xu, Xingcheng. "Deep Generative Modeling with Backward Stochastic Differential Equations." arXiv preprint arXiv:2304.xxxxx (2023).
+Xu, Xingcheng. "Deep Generative Modeling with Backward Stochastic Differential Equations." arXiv preprint arXiv:2304.04049 (2023).
+
+<a href="https://arxiv.org/abs/2304.04049" title="[arXiv Link]" target="_blank">[arXiv Link]</a> <a href="https://arxiv.org/pdf/2304.04049.pdf" title="[PDF]" target="_blank">[PDF]</a>
 
 ## Method
 
@@ -52,7 +54,7 @@ Please cite the paper if you use the idea or code in this paper/repo.
   year = {2023},
   publisher = {arXiv},
   journal = {arXiv preprint},
-  howpublished = {\url{https://arxiv.org/abs/2304.xxxxx}},
+  howpublished = {\url{https://arxiv.org/abs/2304.04049}},
 }
 ```
 <!--
