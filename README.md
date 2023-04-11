@@ -28,14 +28,16 @@ python bsde_gen_model_single_device_training.py
 
 Training on a machine with multiple GPUs using the command: 
 ```bash
-OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  torchrun --nproc_per_node=8 bsde_gen_model_ddp_training.py
+OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \ 
+torchrun --nproc_per_node=8 bsde_gen_model_ddp_training.py
 ```
 
 or the following command:
 
 ```bash
-OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python -m torch.distributed.launch \ 
-        --nproc_per_node=8 bsde_gen_model_ddp_training.py
+OMP_NUM_THREADS=1 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \ 
+python -m torch.distributed.launch \ 
+       --nproc_per_node=8 bsde_gen_model_ddp_training.py
 ```
 
 3. Generate images/Inference
